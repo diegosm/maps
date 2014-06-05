@@ -1,0 +1,1 @@
+<div id="footer">Thank you for using SL Maps</div>

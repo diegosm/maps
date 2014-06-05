@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Mapa</title>
+<script src="http://maps.google.com/maps/api/js?sensor=true"></script>
+<script src="../js/map.js"></script>
+<script src="../js/labels.js"></script>
+<script>
+
+function initialize () { 
+	Map.init({lat: -3.745727, lng: -38.5215,  zoom: 12,  div: 'mapa'});
+
+	Map.Markers.add({id: 1, lat: -3.725727, lng:-38.5015, title: 'Marker 1', cometa : {   "limite" : 3 }    });
+	Map.Markers.add({id: 2, lat: -3.745727, lng:-38.4915, title: 'Marker 2', cometa : {   "limite" : 3 } });
+
+}
+
+
+
+
+Map.Utils.addDomListener(window, 'load', initialize);
+
+
+function setPosition ( ) { 
+	_id=prompt('Digite o ID','1');
+	_lat=prompt('Latitude',"-3.725727");
+	_lng=prompt('Longitude',"-38.5015");
+	
+	Map.Markers.setPosition({id: _id, lat: _lat, lng: _lng})
+	
+}
+</script>
+</head>
+
+<body>
+
+<a href="#" onclick="setPosition();">Set Position</a>
+<div id="mapa" style="width:100%; height:700px;"></div>
+
+
+</body>
+</html>

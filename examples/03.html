@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Mapa</title>
+<script src="http://maps.google.com/maps/api/js?sensor=true"></script>
+<script src="../js/map.js"></script>
+<script src="../js/labels.js"></script>
+<script>
+
+function initialize () { 
+	Map.init({lat: -3.745727, lng: -38.5215,  zoom: 12,  div: 'mapa'});
+	
+	Map.Markers.add({id: 1, lat: -3.725727, lng:-38.5015, title: 'Marker 1'});
+	Map.Markers.add({id: 2, lat: -3.745727, lng:-38.4915, title: 'Marker 2'});
+
+}
+
+function saveObj ( ) { 
+	document.getElementById("objs").value = Map.Markers.serialize();
+}
+
+
+
+function loadObj ( ) { 
+	Map.Markers.loadSerial(document.getElementById("objs").value);
+}
+
+
+Map.Utils.addDomListener(window, 'load', initialize);
+</script>
+</head>
+
+<body>
+
+
+<a href="#" onClick="Map.Markers.del(2);">apagar marcadores</a>
+<a href="#" onClick="Map.Markers.del('all');">apagar marcadores</a>
+<a href="#" onClick="javascript:saveObj();">Serialize</a>
+<a href="#" onClick="javascript:loadObj();">exibir marcadores</a>
+
+<input id="objs" type="text" style="width:100%">
+
+<div id="mapa" style="width:100%; height:550px;"></div>
+
+
+</body>
+</html>

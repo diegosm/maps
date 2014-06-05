@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Mapa</title>
+<script src="http://maps.google.com/maps/api/js?sensor=true"></script>
+<script src="../js/map.js"></script>
+<script src="../js/labels.js"></script>
+<script>
+
+function initialize () { 
+	Map.init({lat: -3.745727, lng: -38.5215,  zoom: 12,  div: 'mapa'});
+	
+	 
+}
+
+function addKML ( ) { 
+	Map.KML.add({id: '1', url: 'http://gmaps-samples.googlecode.com/svn/trunk/ggeoxml/cta.kml'});
+	
+}
+
+function delKML ( ) { 
+	Map.KML.del(1);
+	
+}
+Map.Utils.addDomListener(window, 'load', initialize);
+</script>
+</head>
+
+<body>
+
+
+<a href="#" onClick="addKML()">Adicionar KML</a>
+<a href="#" onClick="delKML()">Remover KML</a>
+
+<textarea id="objs" style="width:100%; height: 150px;"></textarea>
+
+<div id="mapa" style="width:100%; height:550px;"></div>
+
+
+</body>
+</html>
