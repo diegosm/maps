@@ -14,14 +14,26 @@ function initialize () {
 	 
 }
 
-function addKML ( ) { 
-	Map.KML.add({id: '1', url: 'http://gmaps-samples.googlecode.com/svn/trunk/ggeoxml/cta.kml'});
+function addClicker ( ) { 
+
+
+	var j = { "tipo" : "radius" 
+			  /*"prop" : [  
+			  			   { 
+			  				"strokeColor"  : "#aEEAEe" , 
+			  			    "fill" : "No" 
+			  			   }
+			  		   ]*/
+			};
+
+	Map.Clicker.add(j, atualiza );
 	
 }
 
-function delKML ( ) { 
-	Map.KML.del(1);
-	
+ 
+
+function atualiza( a ) { 
+	alert(a);
 }
 Map.Utils.addDomListener(window, 'load', initialize);
 </script>
@@ -30,10 +42,9 @@ Map.Utils.addDomListener(window, 'load', initialize);
 <body>
 
 
-<a href="#" onClick="addKML()">Adicionar KML</a>
-<a href="#" onClick="delKML()">Remover KML</a>
-
-<textarea id="objs" style="width:100%; height: 150px;"></textarea>
+<a href="#" onClick="addClicker()">Adicionar Clicker</a>
+ 
+<textarea id="objs" style="width:100%; height: 50px;"></textarea>
 
 <div id="mapa" style="width:100%; height:550px;"></div>
 

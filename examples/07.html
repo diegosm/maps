@@ -6,6 +6,8 @@
 <script src="http://maps.google.com/maps/api/js?sensor=true"></script>
 <script src="../js/map.js"></script>
 <script src="../js/labels.js"></script>
+<script src="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js"></script>
+
 <script>
 
 function initialize () { 
@@ -14,15 +16,29 @@ function initialize () {
 	 
 }
 
-function addKML ( ) { 
-	Map.KML.add({id: '1', url: 'http://gmaps-samples.googlecode.com/svn/trunk/ggeoxml/cta.kml'});
+function addMarker ( ) { 
 	
+	var max = -38.583641052246094;
+	var min = -3.7138654256325534;
+
+	for ( x=0 ; x < 45 ; x ++ ) { 
+		
+		lt = Math.random() * (max - min) + min;
+		lg = Math.random() * (max - min) + min;
+
+		var js = { lat : lt,
+			       lng : lg,
+			       title : x.toString()
+			     }
+
+		Map.Markers.add(js);
+	}
+	
+
 }
 
-function delKML ( ) { 
-	Map.KML.del(1);
-	
-}
+
+
 Map.Utils.addDomListener(window, 'load', initialize);
 </script>
 </head>
@@ -30,8 +46,8 @@ Map.Utils.addDomListener(window, 'load', initialize);
 <body>
 
 
-<a href="#" onClick="addKML()">Adicionar KML</a>
-<a href="#" onClick="delKML()">Remover KML</a>
+<a href="#" onClick="addMarker()">Adicionar Marcadores</a>
+<a href="#" onClick="Map.Markers.Cluster();">Cluster</a>
 
 <textarea id="objs" style="width:100%; height: 150px;"></textarea>
 

@@ -2,7 +2,7 @@
 // MAP Library using Google Maps API 3
 // Develop by Diego Silveira Mota
 // NameSpace to work with Google Maps
-// Last revision : 2012-08-17
+// Last revision : 2015-01-20
 // GNU
 //
 
@@ -17,15 +17,14 @@ Map = {
 	// Private vars 
 	//
 	// ------------------------------------------------------------------------------------
-	map             : '',
-	latlng          : '',
-	path            : '',
-	markers         : [],  // marcadores
-	markersCometa   : [],  // marcadores
-	markersCount    :  0,
-	polys           : '',  // cercas
-	kmls            : '',
-	kmlCount        :  0,
+	map           : '',
+	latlng        : '',
+	path          : '',
+	markers       : [],  // marcadores
+	markersCount  :  0,
+	polys         : '',  // cercas
+	kmls          : '',
+	kmlCount      :  0,
 	
 	
 	
@@ -128,6 +127,12 @@ Map = {
 		
 	
 	
+
+
+
+
+
+
 	
 	// Construct
 	init : function (json) { 
@@ -205,15 +210,19 @@ Map = {
 		
 		
 		// instancia o mapa
-		Map.setMap( new google.maps.Map(document.getElementById(_div),  _opt) );
-				
+		var mapa = new google.maps.Map(document.getElementById(_div),  _opt);
+		Map.setMap(mapa);
+		
+		google.maps.event.addListener(mapa, 'idle', function() {
+			   google.maps.event.trigger(mapa, 'resize');
+			});
 		 
 	},
 	
 	
 	
 	
-	
+	// Método para centralizar o mapa
 	setCenter : function ( _lat, _lng, zoom ) {
 		
 		var _map           = Map.getMap();
@@ -229,9 +238,243 @@ Map = {
 	
 	
 	
+
+
+
+
+
+
+
+
+
+	// ------------------------------------------------------------------------------------
+	// Clicker - método para obter latitude e longitude a partir de um click no mapa
+	// ------------------------------------------------------------------------------------
+
+	Clicker : { 
+
+		// variáveis exclusivas do clicker
+		tipo : 'radius',
+		prop : false,		// inicia sem propriedades
+		obj  : '',
+		funcao : '',
+
+		lat : '',
+		lng : '',
+
+
+		setTipo : function ( t ) { 
+			Map.Clicker.tipo = t;
+		},
+
+		getTipo : function ( ) { 
+			return Map.Clicker.tipo;
+		},
+
+		setProp : function ( p ) { 
+			
+			if ( p != '' ) { 
+				Map.Clicker.prop = p[0];
+			}
+		},
+
+		getProp : function () { 
+			return Map.Clicker.prop;
+		},
+
+		
+		/// LATITUDE 
+		setLat : function ( l ) { 
+			Map.Clicker.lat = l;
+		},
+
+		getLat : function ( ) { 
+			return Map.Clicker.lat; 
+		},
+
+
+
+		/// LONGITUDE 
+		setLng : function ( l ) { 
+			Map.Clicker.lng = l;
+		},
+
+		getLng : function ( ) { 
+			return Map.Clicker.lng; 
+		},
+
+
+
+
+
+		add : function ( json, funcao ) { 
+
+			if ( typeof funcao === "function" ) { 
+				Map.Clicker.funcao = funcao;
+			}
+
+
+			Map.Clicker.setTipo(Map.Utils.tryCatch(json.tipo, 'radius'));
+
+			Map.Clicker.setProp(Map.Utils.tryCatch(json.prop, ''));
+
+			var callback = Map.Utils.tryCatch(callback, false);
+			
+			// verifica se já vai com algum pre-definido
+			var lat  = Map.Clicker.setLat ( Map.Utils.tryCatch(json.lat,  false) );
+			var lng  = Map.Clicker.setLng ( Map.Utils.tryCatch(json.lng,  false) );
+
+
+			var _map           = Map.getMap();
+
+			google.maps.event.addListener(_map, 'click',   Map.Clicker.addPoint );
+
+
+
+			if ( lat != false && lng != false ) { 
+				Map.Clicker.addPoint();
+			}
+
+
+			
+			
+ 
+		}, // fim do método add
+
+
+
+
+		addPoint : function ( event ) { 
+				
+
+
+				var _map      = Map.getMap();
+				var _tipo     = Map.Clicker.getTipo();
+				var _prop     = Map.Clicker.getProp();
+
+				// zera qualquer ponto anterior
+				Map.Clicker.del();
+
+
+
+
+				// vindas do evento
+
+				try  { 
+					var latitude = event.latLng.lat()
+
+				}catch ( e ) { 
+					var latitude = Map.Clicker.getLat()
+				}
+				
+
+
+				try  { 
+					var longitude = event.latLng.lng()
+
+				}catch ( e ) { 
+					var longitude = Map.Clicker.getLng()
+				}
+				
+
+				try { 
+			    	var center = event.latLng 
+			    }catch ( e ) { 
+			    	var center =  new google.maps.LatLng( latitude,  longitude)
+			    }
+
+
+			    // console.log( latitude + ', ' + longitude );
+
+
+			    if ( _tipo == 'radius' ) {
+					 
+
+			    	// testa as propriedades, se foram enviadas 
+			    	var _radius        = Map.Utils.tryCatch(_prop.radius, 4);
+			    	var _fillColor     = Map.Utils.tryCatch(_prop.fillColor,'#ffffff');
+			    	var _fillOpacity   = Map.Utils.tryCatch(_prop.fillOpacity, 0.1);
+			    	var _strokeColor   = Map.Utils.tryCatch(_prop.strokeColor, '#AA0000');
+			    	var _strokeOpacity = Map.Utils.tryCatch(_prop.strokeOpacity, 0.8);
+			    	var _strokeWeight  = Map.Utils.tryCatch(_prop.strokeWeight, 2);
+			    	var _draggable     = Map.Utils.tryCatch(_prop.draggable, true);
+			    	var _editable      = Map.Utils.tryCatch(_prop.editable, true);
+
+
+				    radius = new google.maps.Circle({map: _map,
+				        radius        : _radius,
+				        center        : center,
+				        fillColor     : _fillColor,
+				        fillOpacity   : _fillOpacity,
+				        strokeColor   : _strokeColor,
+				        strokeOpacity : _strokeOpacity,
+				        strokeWeight  : _strokeWeight,
+				        draggable     : _draggable,    // Dragable
+				        editable      : _editable      // Resizable
+				        
+				    });
+				    
+				    google.maps.event.addListener(radius, 'click',  function ( ) {  Map.Clicker.callback(radius) } );
+					
+					if ( _draggable ) {
+						google.maps.event.addListener(radius, 'dragend',   function ( ) {  Map.Clicker.callback(radius) } );
+					}
+
+					if ( _editable ) {
+						google.maps.event.addListener(radius, 'bounds_changed',   function ( ) {  Map.Clicker.callback(radius) });
+					}
+					
+					Map.Clicker.obj = radius;
+
+				    // Center of map
+				    _map.panTo(new google.maps.LatLng(latitude,longitude));
+
+				   Map.Clicker.callback(radius);
+				
+				} // fim do tipo radius
+
+
+		},
+ 	
+ 		adiciona : function ( ) { },
+
+		callback : function ( a ) { 
+			
+			if (typeof Map.Clicker.funcao === "function" ) {
+				return Map.Clicker.funcao(a);
+			}else{
+				return a;
+			}
+
+		},
+
+
+
+		// deleta o clicker anterior
+		del : function () { 
+			
+			console.log("DELETA");
+
+			try {
+				if ( typeof Map.Clicker.obj === "object" ) { 
+					Map.Clicker.obj.setMap(null);
+				}
+			}catch ( err ) { 
+				console.log(err.message);
+			}
+		}
+
+		 
+
+
+
+	},
+
 	
 	
-	
+
+
+
 	// ------------------------------------------------------------------------------------
 	//
 	// MARKERS
@@ -260,10 +503,14 @@ Map = {
 			var _draggable     = json.draggable;
 			var _opt	       = json.opt;			// if user defines the custom options for marker
 			var _label	       = json.label;
-
+			
 			var _contentString = json.contentString;
 			var _position	   = json.position;
-			var _cometa  	   = json.cometa;
+			
+			
+			var _cometa        = json.cometa;// se vai ter cometa
+			
+			//console.log(_cometa.cor);
 			
 			
 			// variaveis para marcadores
@@ -274,7 +521,7 @@ Map = {
 			var _map           = Map.getMap();
 			
 			
-			// Define id se ele estÃ¡ vazio
+			// Define id se ele está vazio
 			if ( _id == '' || _id == 'undefined' || _id == null ) { 
 				_id = _markersCount++;
 			}
@@ -307,15 +554,18 @@ Map = {
 				
 			}else{
 				
-				json.lat = _position.lat(); //tmp[0];
-				json.lng = _position.lng(); //tmp[1];
+				//json.lat = _position.lat(); //tmp[0];
+				//json.lng = _position.lng(); //tmp[1];
+
+				_position = _opt.position;
 				
 			}
 			
 			
 			
 			
-			// 
+			
+			// se opções não foram passadas
 		 	if ( _opt == null ) { 
 			
 				var _marker = new google.maps.Marker({
@@ -405,18 +655,16 @@ Map = {
 				});
 				 
 				
-			}	
-				
-				
-				
+			}	// fim se tem label e contentString
+			
+
+
+			_cometa = new Array();
+			_cometa.push(_position);
+
 			// add marker into array
 			Map.Markers.addArray(_id, _marker, _label, json, _cometa);
 
-			
-			
-			 
-			
-			
 			return _id;
 		
 			
@@ -424,6 +672,10 @@ Map = {
 		
 		
 		
+
+
+
+
 		
 		// Add marker into array
 		addArray : function ( id, marker, label, json, cometa) {
@@ -431,16 +683,13 @@ Map = {
 			
 			var _markers = Map.getMarkers();
 			
-			tmpMarcadores    = new Array(4);
-			tmpMarcadores[0] = id;
-			tmpMarcadores[1] = marker;
-			tmpMarcadores[2] = label;
-			tmpMarcadores[3] = json;
-			tmpMarcadores[4] = cometa;
-			
-			console.log("RDID " + id);
-			console.log(cometa);
-			//alert(tmpMarcadores[4]);
+			tmpMarcadores    = new Array(6);
+			tmpMarcadores[0] = id;				// 
+			tmpMarcadores[1] = marker;			// marcador Objeto do google
+			tmpMarcadores[2] = label;			// label do objeto
+			tmpMarcadores[3] = json;			// objeto que foi passado
+			tmpMarcadores[4] = cometa;  		// path - array das posições
+			tmpMarcadores[5] = ''; 				// polyline
 			
 			//alert(id);
 			
@@ -470,11 +719,14 @@ Map = {
 			for ( x=0; x< _markers.length; x++) { 
 				
 				
+				// se é o id em questão
 				if ( _id == _markers[x][0] ) { 
 					
 					// get the old obj
 					var obtmp = _markers[x][3]; 
 					//alert(obtmp.lat);
+
+					//console.log(_markers[x][4]);
 					
 					for (y in json ) { 
 						eval ("obtmp." + y + " = '" + json[y] +"'");
@@ -499,6 +751,8 @@ Map = {
 		
 		
 		
+
+
 		
 		// sets the new position of marker and update your json
 		setPosition : function ( json ) { 
@@ -507,93 +761,84 @@ Map = {
 			var _lat = json.lat;
 			var _lng = json.lng;
 			
-			// convertendo para numÃ©rico
-			if (typeof _id == "string") { 
-				_id = parseInt(_id);
-			}
-			
-			 
-			var _map   		   = Map.getMap();
-
 			var _markers = Map.getMarkers();
 			var _newPos  = new google.maps.LatLng( _lat, _lng);
 			
-			// alert(_newPos);
 			for (x=0; x < _markers.length; x++) { 
-				
-				
 				
 				if ( _markers[x][0]  == _id ) { // mostra os ids
 					
 					_markers[x][1].setPosition(_newPos);
 					
-					
-					// se tem cometa
-					if ( typeof _markers[x][4]  === "object") { 
+					//console.log(_markers[x][3].cometa)
+					// verificando se este marcador tem cometa
+					if ( _markers[x][3].cometa != undefined ) { 
 						
+						//console.log("Este tem cometa ------------------------------------ ");
 						
-						
-						
-						if ( typeof _markers[x][4].polyline != "undefined" ) { 
-							_markers[x][4].polyline.setMap(null);
-						}
-						
-						
-						_limite      = parseInt(_markers[x][4].limite);     // transforma o limite em numerico
-						_limitefor   = _limite - 2;							// limite no for
-						
-						// se nao foi definido a calda, cria o array
-						if ( typeof _markers[x][4].calda == "undefined" ) { 
-							_markers[x][4].calda = [];
-						}
-						
-						_caldacometa = _markers[x][4].calda;                // calda do cometa, array
-						
-						for ( abc=0; abc < _limite; abc++ ) { 
-							soma = abc + 1
-							if ( soma < _limite ) { 
-								
-								// verifica se proxima posiÃ§Ã£o nÃ£o Ã© vazia
-								if ( _caldacometa[soma] != "undefined") { 
-									_markers[x][4].calda[abc] = _caldacometa[soma]; // o atual recebe o prÃ³ximo
-								}
-							}
-							
+						_markers[x][4].push(_newPos); // incrementa o array das posições
+
+						limite  = _markers[x][3].cometa.limite
+						tamanho = _markers[x][4].length;
+
+
+						// setando a cor
+						if ( _markers[x][3].cometa.cor != undefined ) {
+							cor = _markers[x][3].cometa.cor;
+						}else{
+							cor = '#FF0000';
 						}
 
-						// a ultima posicao do aray Ã© a posiÃ§Ã£o atual
-						tmp = _limite - 1;
-						_markers[x][4].calda[tmp] = _newPos;
 
-					    
-						tmpArray = [];
+
+
+						/*console.log("Array de posições do veículo: " + _markers[x][2].title);
+						console.log("Tamanho do array: " + tamanho )
+						console.log("Limite = " + limite );
+						console.log("-----------------");
+						*/
+
+
+						// zerando as linhas antigas
+						//console.log("Zerando path antigo");
+						if ( _markers[x][5] != undefined && _markers[x][5] != '' ){ _markers[x][5].setMap(null); }
+
 						
-						// organizando o array
-						for ( abc=0; abc < _limite; abc++ ) { 
-							
-							
-							if ( typeof  _markers[x][4].calda[abc] == "object" ) { 
-								tmpArray.push(_markers[x][4].calda[abc]	)
-								// alert("Inseriu -> " + _markers[x][4].calda[abc] + " no array")
-							}
-							
+						// redesenhando
+						//console.log("Redesenhando");
+
+						_markers[x][5] = new google.maps.Polyline({
+						    path: _markers[x][4],
+						    geodesic: true,
+						    strokeColor: cor,
+						    strokeOpacity: 1.0,
+						    strokeWeight: 2
+						  });
+						
+						//console.log("Pegando mapa");
+						var _map   = Map.getMap();
+
+						console.log("Tamanho plotado: " + _markers[x][4].length);
+						
+						//console.log("Plotando no mapa ");
+						_markers[x][5].setMap(_map);
+
+
+						// se atingiu o limite, remove o primeiro elemento do array
+						if ( limite == tamanho  ) { 
+							_markers[x][4].shift()
+							console.log("Removendo primeiro elemento" + _markers[x][4].length);
+						}else{
+							//console.log(_markers[x][4].length)
 						}
-						
-						
-						 
-						_markers[x][4].polyline = new google.maps.Polyline({
-													path: tmpArray,
-													strokeColor: '#ff0000',
-													strokeOpacity: 1.0,
-													strokeWeight: 2
-			            						  });
- 
-						_markers[x][4].polyline.setMap(_map);
-			            //alert("line.setMap(_map)") ;
-						
+
+
+
+
 					}
- 					
- 					
+
+					
+
 					// update position in JSON
 					var temp = _markers[x][3];  
 					temp.lat = _lat;
@@ -745,8 +990,11 @@ Map = {
 				Map.setMarkers(xtmp);
 			}
 			
-		} // end of function
-		
+		}, // end of function
+
+
+
+
 		
 		
 		
@@ -813,7 +1061,7 @@ Map = {
 		
 		
 		
-		// mÃ©todo para criar o objeto Polygon da cerca
+		// método para criar o objeto Polygon da cerca
 		addPoly : function (json){
 			var _polys = Map.getPolys();
 			var  _poly = new google.maps.Polygon(json);
@@ -913,7 +1161,7 @@ Map = {
 			
 			
 			
-			// em observaÃ§Ã£o
+			// em observação
 			var _markers = Map.getMarkers();
 			// retorna os marcadores
 			for ( x = 0 ; x < _markers.length; x++) { 
@@ -952,7 +1200,7 @@ Map = {
 					_path.removeAt(i);
 			});
 			
-			// fim em observaÃ§Ã£o
+			// fim em observação
 			
 			/*alert(id);
 			// adicionando o listener no marcador
@@ -972,7 +1220,7 @@ Map = {
 		
 		
 		
-		
+		// incrementado o esquema de cores nas cercas
 		
 		
 		
@@ -980,14 +1228,27 @@ Map = {
 		load : function (json) { 
 			
 			
-			var _json        = JSON.parse(json);
 			
+			
+			try {
+				var _json        = JSON.parse(json);
+			}catch (err ) { 
+				//alert(err.message);
+				//return false;
+				_json = json;
+			}
+			//alert("OK");
+			
+			//return false;
 			var _del         = _json.del;
+			//alert(_del);
+			//return false;
 			var _markers     = _json.markers;
 			var _showMarkers = _json.showMarkers;
 			var _map         = Map.getMap();
 			var _path        = new google.maps.MVCArray;
 			var _polys       = Map.getPolys();
+			var _cor         = _json.cor;
 			
 			
 			
@@ -1010,7 +1271,9 @@ Map = {
 				Map.Fences.del();
 			}
 			
-			
+			if ( _cor == null ) { 
+				_cor = '#5555FF'
+			}
 			
 			
 			// setting the markers
@@ -1048,13 +1311,11 @@ Map = {
 			
 			
 			
-			
 			 
-			
 			
 			Map.setPath(_path); // zerando o path
 			
-			var id    = Map.Fences.addPoly({ strokeWeight: 2, fillColor: '#5555FF'});
+			var id    = Map.Fences.addPoly({ strokeWeight: 2, fillColor: _cor});
 			var _poly = _polys[id][1]; // Objeto criado da 
 			
 			_poly.setMap(_map);
@@ -1146,7 +1407,8 @@ Map = {
 		
 		
 		loadSerialize : function (json) {
-			
+			//alert(json);
+			//return false;
 			Map.Fences.load(json);
 			
 		}
@@ -1187,7 +1449,7 @@ Map = {
 		
 		
 		// Add KML into array
-		// MÃ©todo para criar um array de objetos KML
+		// Método para criar um array de objetos KML
 		addArray : function ( id, kml, json) {
 			
 			//console.log('Add Array da cerca');
@@ -1206,10 +1468,9 @@ Map = {
 		
 		
 		
-		// SEMPRE RECEBERÃ UM JSON
+		// SEMPRE RECEBERÁ UM JSON
 		add : function (json) { 
 				
-				// alert(json);
  
 				var _id        = json.id;
 				var _url       = json.url;
@@ -1223,7 +1484,7 @@ Map = {
 				var _kmlCount      = Map.getKMLCount();
 				 
 				
-				// Define id se ele estÃ¡ vazio
+				// Define id se ele está vazio
 				if ( _id == '' || _id == 'undefined' || _id == null ) { 
 					_id =  _kmlCount + 1;
 				}
@@ -1243,7 +1504,7 @@ Map = {
 				//return false;
 				
 				
-				// se o JSON nÃ£o foi definido, cria um para ele
+				// se o JSON não foi definido, cria um para ele
 				if ( _json == null ) { 
 					_json = { id : '',
 							  url : _url
@@ -1261,7 +1522,7 @@ Map = {
 		
 		
 		
-		// mÃ©todo para deletar um KML
+		// método para deletar um KML
 		del : function ( id )  { 
 			
 			var _kmls = Map.getKML();
@@ -1305,6 +1566,19 @@ Map = {
 	
 	
 	
+	,
+
+
+	// http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js
+
+	Cluster : function ( ) { 
+
+		var _map     = Map.getMap();
+		var _markers = Map.getMarkers();
+
+		//var markerCluster = new MarkerClusterer(_map, _markers);
+
+	}
 	
 	
 	
@@ -1319,7 +1593,45 @@ Map = {
 	,
 	
 	Utils : { 
-	
+		
+
+
+		// calcula distancia entre dois pontos
+		distanceBetweenPoints : function(p1, p2) {
+		 	
+		 	if (!p1 || !p2) {
+		 		return 0;
+		 	}
+
+		 	var R 		= 6371; // Radius of the Earth in km
+		 	var dLat 	= (p2.lat() - p1.lat()) * Math.PI / 180;
+		 	var dLon 	= (p2.lng() - p1.lng()) * Math.PI / 180;
+		 	var a 		= Math.sin(dLat / 2) * 
+		 				  Math.sin(dLat / 2) +
+		    			  Math.cos(p1.lat() * 
+		    			  Math.PI / 180) * 
+		    			  Math.cos(p2.lat() * 
+		    			  Math.PI / 180) *
+		    			  Math.sin(dLon / 2) * 
+		    			  Math.sin(dLon / 2);
+		 	
+		 	var c 		= 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		 	var d 		= R * c;
+		 	return d;
+		},
+
+
+		tryCatch : function ( v1, v2 ) { 
+
+				//console.log(typeof v1);
+				if ( v1 === undefined ) { 
+					return v2;
+				}else{
+					return v1;
+				}
+
+		},
+
 		lf : function (filename, filetype) {
 			
 			//alert(filename);
